@@ -1,55 +1,96 @@
-import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { Search as SearchIcon, Filter, MapPin, Phone, MessageCircle, Mail, Star, Clock, Utensils } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Slider } from '@/components/ui/slider';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Label } from '@/components/ui/label';
-import { tiffinProviders } from '@/data/providers';
+import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
+import {
+  Search as SearchIcon,
+  Filter,
+  MapPin,
+  Phone,
+  MessageCircle,
+  Mail,
+  Star,
+  Clock,
+  Utensils,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
+import { tiffinProviders } from "@/data/providers";
 
 const Search = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedArea, setSelectedArea] = useState('all');
-  const [selectedCuisine, setSelectedCuisine] = useState('all');
-  const [selectedType, setSelectedType] = useState('all');
-  const [selectedDelivery, setSelectedDelivery] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedArea, setSelectedArea] = useState("all");
+  const [selectedCuisine, setSelectedCuisine] = useState("all");
+  const [selectedType, setSelectedType] = useState("all");
+  const [selectedDelivery, setSelectedDelivery] = useState("all");
   const [priceRange, setPriceRange] = useState([50, 300]);
-  const [sortBy, setSortBy] = useState('rating');
+  const [sortBy, setSortBy] = useState("rating");
 
-  const areas = [...new Set(tiffinProviders.map(p => p.area))];
-  const cuisines = [...new Set(tiffinProviders.flatMap(p => p.cuisine))];
+  const areas = [...new Set(tiffinProviders.map((p) => p.area))];
+  const cuisines = [...new Set(tiffinProviders.flatMap((p) => p.cuisine))];
 
   const filteredProviders = useMemo(() => {
-    let filtered = tiffinProviders.filter(provider => {
-      const matchesSearch = provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           provider.area.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           provider.cuisine.some(c => c.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-      const matchesArea = selectedArea === 'all' || provider.area === selectedArea;
-      const matchesCuisine = selectedCuisine === 'all' || provider.cuisine.includes(selectedCuisine);
-      const matchesType = selectedType === 'all' || provider.type === selectedType || provider.type === 'both';
-      const matchesDelivery = selectedDelivery === 'all' || provider.deliveryType === selectedDelivery || provider.deliveryType === 'both';
-      const matchesPrice = provider.price.min >= priceRange[0] && provider.price.max <= priceRange[1];
+    const filtered = tiffinProviders.filter((provider) => {
+      const matchesSearch =
+        provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        provider.area.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        provider.cuisine.some((c) =>
+          c.toLowerCase().includes(searchTerm.toLowerCase())
+        );
 
-      return matchesSearch && matchesArea && matchesCuisine && matchesType && matchesDelivery && matchesPrice;
+      const matchesArea =
+        selectedArea === "all" || provider.area === selectedArea;
+      const matchesCuisine =
+        selectedCuisine === "all" || provider.cuisine.includes(selectedCuisine);
+      const matchesType =
+        selectedType === "all" ||
+        provider.type === selectedType ||
+        provider.type === "both";
+      const matchesDelivery =
+        selectedDelivery === "all" ||
+        provider.deliveryType === selectedDelivery ||
+        provider.deliveryType === "both";
+      const matchesPrice =
+        provider.price.min >= priceRange[0] &&
+        provider.price.max <= priceRange[1];
+
+      return (
+        matchesSearch &&
+        matchesArea &&
+        matchesCuisine &&
+        matchesType &&
+        matchesDelivery &&
+        matchesPrice
+      );
     });
 
     // Sort providers
     filtered.sort((a, b) => {
       switch (sortBy) {
-        case 'rating':
+        case "rating":
           return b.rating - a.rating;
-        case 'price-low':
+        case "price-low":
           return a.price.min - b.price.min;
-        case 'price-high':
+        case "price-high":
           return b.price.max - a.price.max;
-        case 'reviews':
+        case "reviews":
           return b.reviews - a.reviews;
         default:
           return 0;
@@ -57,16 +98,24 @@ const Search = () => {
     });
 
     return filtered;
-  }, [searchTerm, selectedArea, selectedCuisine, selectedType, selectedDelivery, priceRange, sortBy]);
+  }, [
+    searchTerm,
+    selectedArea,
+    selectedCuisine,
+    selectedType,
+    selectedDelivery,
+    priceRange,
+    sortBy,
+  ]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   const cardVariants = {
@@ -74,44 +123,54 @@ const Search = () => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.4 }
-    }
+      transition: { duration: 0.4 },
+    },
   };
 
   const FilterContent = () => (
     <div className="space-y-6">
       <div>
-        <Label className="text-sm font-medium text-gray-700 mb-2 block">Area</Label>
+        <Label className="text-sm font-medium text-gray-700 mb-2 block">
+          Area
+        </Label>
         <Select value={selectedArea} onValueChange={setSelectedArea}>
           <SelectTrigger>
             <SelectValue placeholder="Select area" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Areas</SelectItem>
-            {areas.map(area => (
-              <SelectItem key={area} value={area}>{area}</SelectItem>
+            {areas.map((area) => (
+              <SelectItem key={area} value={area}>
+                {area}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
       <div>
-        <Label className="text-sm font-medium text-gray-700 mb-2 block">Cuisine</Label>
+        <Label className="text-sm font-medium text-gray-700 mb-2 block">
+          Cuisine
+        </Label>
         <Select value={selectedCuisine} onValueChange={setSelectedCuisine}>
           <SelectTrigger>
             <SelectValue placeholder="Select cuisine" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Cuisines</SelectItem>
-            {cuisines.map(cuisine => (
-              <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
+            {cuisines.map((cuisine) => (
+              <SelectItem key={cuisine} value={cuisine}>
+                {cuisine}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
       <div>
-        <Label className="text-sm font-medium text-gray-700 mb-2 block">Food Type</Label>
+        <Label className="text-sm font-medium text-gray-700 mb-2 block">
+          Food Type
+        </Label>
         <Select value={selectedType} onValueChange={setSelectedType}>
           <SelectTrigger>
             <SelectValue placeholder="Select type" />
@@ -125,7 +184,9 @@ const Search = () => {
       </div>
 
       <div>
-        <Label className="text-sm font-medium text-gray-700 mb-2 block">Delivery Type</Label>
+        <Label className="text-sm font-medium text-gray-700 mb-2 block">
+          Delivery Type
+        </Label>
         <Select value={selectedDelivery} onValueChange={setSelectedDelivery}>
           <SelectTrigger>
             <SelectValue placeholder="Select delivery" />
@@ -162,7 +223,9 @@ const Search = () => {
             <Input
               type="number"
               value={priceRange[0]}
-              onChange={(e) => setPriceRange([parseInt(e.target.value) || 50, priceRange[1]])}
+              onChange={(e) =>
+                setPriceRange([parseInt(e.target.value) || 50, priceRange[1]])
+              }
               className="h-8 text-sm"
               min={50}
               max={300}
@@ -173,7 +236,9 @@ const Search = () => {
             <Input
               type="number"
               value={priceRange[1]}
-              onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || 300])}
+              onChange={(e) =>
+                setPriceRange([priceRange[0], parseInt(e.target.value) || 300])
+              }
               className="h-8 text-sm"
               min={50}
               max={300}
@@ -197,7 +262,8 @@ const Search = () => {
             Find Your Perfect Tiffin Service
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Discover authentic homemade meals from verified providers in your area
+            Discover authentic homemade meals from verified providers in your
+            area
           </p>
         </motion.div>
 
@@ -217,7 +283,7 @@ const Search = () => {
                 className="pl-10 h-12"
               />
             </div>
-            
+
             <div className="flex gap-4 items-center">
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-40">
@@ -279,7 +345,8 @@ const Search = () => {
               animate={{ opacity: 1 }}
               className="mb-4 text-sm text-gray-600"
             >
-              Found {filteredProviders.length} tiffin service{filteredProviders.length !== 1 ? 's' : ''}
+              Found {filteredProviders.length} tiffin service
+              {filteredProviders.length !== 1 ? "s" : ""}
             </motion.div>
 
             <motion.div
@@ -304,8 +371,18 @@ const Search = () => {
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute top-4 left-4">
-                          <Badge variant={provider.type === 'veg' ? 'secondary' : 'destructive'}>
-                            {provider.type === 'veg' ? '🌱 Veg' : provider.type === 'non-veg' ? '🍖 Non-Veg' : '🌱🍖 Both'}
+                          <Badge
+                            variant={
+                              provider.type === "veg"
+                                ? "secondary"
+                                : "destructive"
+                            }
+                          >
+                            {provider.type === "veg"
+                              ? "🌱 Veg"
+                              : provider.type === "non-veg"
+                              ? "🍖 Non-Veg"
+                              : "🌱🍖 Both"}
                           </Badge>
                         </div>
                         <div className="absolute top-4 right-4 bg-white rounded-full px-2 py-1 text-sm font-medium flex items-center">
@@ -316,7 +393,9 @@ const Search = () => {
 
                       <CardContent className="p-6">
                         <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-xl font-bold text-gray-900">{provider.name}</h3>
+                          <h3 className="text-xl font-bold text-gray-900">
+                            {provider.name}
+                          </h3>
                           <span className="text-lg font-bold text-orange-600">
                             ₹{provider.price.min}-{provider.price.max}
                           </span>
@@ -329,7 +408,9 @@ const Search = () => {
 
                         <div className="flex items-center text-gray-600 mb-3">
                           <Utensils className="h-4 w-4 mr-1" />
-                          <span className="text-sm">{provider.cuisine.join(', ')}</span>
+                          <span className="text-sm">
+                            {provider.cuisine.join(", ")}
+                          </span>
                         </div>
 
                         <p className="text-gray-600 text-sm mb-4 line-clamp-2">
@@ -354,7 +435,12 @@ const Search = () => {
                               </a>
                             </Button>
                             <Button size="sm" variant="outline" asChild>
-                              <a href={`https://wa.me/${provider.contact.whatsapp.replace('+', '')}`}>
+                              <a
+                                href={`https://wa.me/${provider.contact.whatsapp.replace(
+                                  "+",
+                                  ""
+                                )}`}
+                              >
                                 <MessageCircle className="h-4 w-4" />
                               </a>
                             </Button>
@@ -364,7 +450,10 @@ const Search = () => {
                               </a>
                             </Button>
                           </div>
-                          <Button asChild className="bg-orange-600 hover:bg-orange-700">
+                          <Button
+                            asChild
+                            className="bg-orange-600 hover:bg-orange-700"
+                          >
                             <Link to={`/provider/${provider.id}`}>
                               View Details
                             </Link>
@@ -386,8 +475,12 @@ const Search = () => {
                 <div className="text-gray-400 mb-4">
                   <SearchIcon className="h-16 w-16 mx-auto" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No providers found</h3>
-                <p className="text-gray-600">Try adjusting your search criteria or filters</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  No providers found
+                </h3>
+                <p className="text-gray-600">
+                  Try adjusting your search criteria or filters
+                </p>
               </motion.div>
             )}
           </div>
