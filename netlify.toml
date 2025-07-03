@@ -1,3 +1,3 @@
 [build]
   command = "npm run build"     # adjust if your command is different
-  publish = "build"              # adjust to "build" or your actual output folder
+  publish = "dist"              # adjust to "build" or your actual output folder
