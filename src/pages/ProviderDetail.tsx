@@ -6,28 +6,28 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Phone, 
-  MessageCircle, 
-  Mail, 
-  Star, 
-  MapPin, 
-  Clock, 
-  Truck, 
+import {
+  Phone,
+  MessageCircle,
+  Mail,
+  Star,
+  MapPin,
+  Clock,
+  Truck,
   ChefHat,
   ArrowLeft,
   Calendar,
   IndianRupee,
   Users,
   Zap,
-  Send
+  Send,
 } from "lucide-react";
 import { tiffinProviders } from "@/data/providers";
 import { toast } from "sonner";
 
 const ProviderDetail = () => {
   const { id } = useParams();
-  const provider = tiffinProviders.find(p => p.id === id);
+  const provider = tiffinProviders.find((p) => p.id === id);
   const [selectedImage, setSelectedImage] = useState(0);
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
@@ -37,7 +37,9 @@ const ProviderDetail = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Provider not found</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">
+            Provider not found
+          </h1>
           <Link to="/search">
             <Button>Back to Search</Button>
           </Link>
@@ -46,15 +48,17 @@ const ProviderDetail = () => {
     );
   }
 
-  const handleContact = (type: 'phone' | 'whatsapp' | 'email') => {
+  const handleContact = (type: "phone" | "whatsapp" | "email") => {
     switch (type) {
-      case 'phone':
+      case "phone":
         window.open(`tel:${provider.contact.phone}`);
         break;
-      case 'whatsapp':
-        window.open(`https://wa.me/${provider.contact.whatsapp.replace('+', '')}`);
+      case "whatsapp":
+        window.open(
+          `https://wa.me/${provider.contact.whatsapp.replace("+", "")}`
+        );
         break;
-      case 'email':
+      case "email":
         window.open(`mailto:${provider.contact.email}`);
         break;
     }
@@ -66,7 +70,7 @@ const ProviderDetail = () => {
       toast.error("Please fill in all fields and select a rating");
       return;
     }
-    
+
     toast.success("Review submitted successfully!");
     setReviewerName("");
     setReviewText("");
@@ -77,7 +81,10 @@ const ProviderDetail = () => {
     <div className="min-h-screen py-8 px-4">
       <div className="container mx-auto max-w-6xl">
         {/* Back Button */}
-        <Link to="/search" className="inline-flex items-center text-gray-600 hover:text-gray-800 mb-6">
+        <Link
+          to="/search"
+          className="inline-flex items-center text-gray-600 hover:text-gray-800 mb-6"
+        >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Search
         </Link>
@@ -93,8 +100,8 @@ const ProviderDetail = () => {
               className="mb-8"
             >
               <div className="aspect-video rounded-lg overflow-hidden mb-4">
-                <img 
-                  src={provider.gallery[selectedImage]} 
+                <img
+                  src={provider.gallery[selectedImage]}
                   alt={provider.name}
                   className="w-full h-full object-cover"
                 />
@@ -105,10 +112,16 @@ const ProviderDetail = () => {
                     key={index}
                     onClick={() => setSelectedImage(index)}
                     className={`flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 ${
-                      selectedImage === index ? 'border-yellow-500' : 'border-gray-200'
+                      selectedImage === index
+                        ? "border-yellow-500"
+                        : "border-gray-200"
                     }`}
                   >
-                    <img src={image} alt="" className="w-full h-full object-cover" />
+                    <img
+                      src={image}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
                   </button>
                 ))}
               </div>
@@ -124,7 +137,9 @@ const ProviderDetail = () => {
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h1 className="text-3xl font-bold text-gray-800 mb-2">{provider.name}</h1>
+                      <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                        {provider.name}
+                      </h1>
                       <div className="flex items-center text-gray-600 mb-2">
                         <MapPin className="w-4 h-4 mr-1" />
                         <span>{provider.location.address}</span>
@@ -132,18 +147,30 @@ const ProviderDetail = () => {
                       <div className="flex items-center space-x-4 text-sm">
                         <div className="flex items-center">
                           <Star className="w-4 h-4 mr-1 fill-yellow-400 text-yellow-400" />
-                          <span className="font-semibold">{provider.rating}</span>
-                          <span className="text-gray-500 ml-1">({provider.reviews} reviews)</span>
+                          <span className="font-semibold">
+                            {provider.rating}
+                          </span>
+                          <span className="text-gray-500 ml-1">
+                            ({provider.reviews} reviews)
+                          </span>
                         </div>
-                        <Badge variant="outline">{provider.foodType === "both" ? "Veg & Non-Veg" : provider.foodType === "veg" ? "Vegetarian" : "Non-Vegetarian"}</Badge>
+                        <Badge variant="outline">
+                          {provider.foodType === "both"
+                            ? "Veg & Non-Veg"
+                            : provider.foodType === "veg"
+                            ? "Vegetarian"
+                            : "Non-Vegetarian"}
+                        </Badge>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-green-600 mb-1">{provider.priceRange}</div>
+                      <div className="text-2xl font-bold text-green-600 mb-1">
+                        {provider.priceRange}
+                      </div>
                       <div className="text-sm text-gray-500">per meal</div>
                     </div>
                   </div>
-                  
+
                   <p className="text-gray-600 mb-6">{provider.description}</p>
 
                   <div className="grid md:grid-cols-2 gap-4 mb-6">
@@ -152,7 +179,8 @@ const ProviderDetail = () => {
                       <div>
                         <div className="font-semibold text-sm">Timings</div>
                         <div className="text-sm text-gray-600">
-                          Lunch: {provider.timing.lunch}<br/>
+                          Lunch: {provider.timing.lunch}
+                          <br />
                           Dinner: {provider.timing.dinner}
                         </div>
                       </div>
@@ -161,7 +189,9 @@ const ProviderDetail = () => {
                       <Truck className="w-5 h-5 mr-3 text-green-500" />
                       <div>
                         <div className="font-semibold text-sm">Delivery</div>
-                        <div className="text-sm text-gray-600 capitalize">{provider.deliveryType}</div>
+                        <div className="text-sm text-gray-600 capitalize">
+                          {provider.deliveryType}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -173,7 +203,9 @@ const ProviderDetail = () => {
                     </h3>
                     <div className="flex flex-wrap gap-2">
                       {provider.cuisine.map((cuisine) => (
-                        <Badge key={cuisine} variant="secondary">{cuisine}</Badge>
+                        <Badge key={cuisine} variant="secondary">
+                          {cuisine}
+                        </Badge>
                       ))}
                     </div>
                   </div>
@@ -182,7 +214,9 @@ const ProviderDetail = () => {
                     <h3 className="font-semibold mb-2">Specialties</h3>
                     <div className="flex flex-wrap gap-2">
                       {provider.specialties.map((specialty) => (
-                        <Badge key={specialty} variant="outline">{specialty}</Badge>
+                        <Badge key={specialty} variant="outline">
+                          {specialty}
+                        </Badge>
                       ))}
                     </div>
                   </div>
@@ -206,9 +240,13 @@ const ProviderDetail = () => {
                     <div className="border rounded-lg p-4 bg-gradient-to-br from-yellow-50 to-orange-50">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-semibold">Weekly Plan</span>
-                        <span className="text-lg font-bold text-green-600">₹{provider.weeklyPrice}</span>
+                        <span className="text-lg font-bold text-green-600">
+                          ₹{provider.weeklyPrice}
+                        </span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">14 tiffins (2 meals/day for 7 days)</p>
+                      <p className="text-sm text-gray-600 mb-2">
+                        14 tiffins (2 meals/day for 7 days)
+                      </p>
                       <div className="flex items-center text-xs text-gray-500">
                         <Users className="w-3 h-3 mr-1" />
                         Perfect for individuals
@@ -217,9 +255,13 @@ const ProviderDetail = () => {
                     <div className="border rounded-lg p-4 bg-gradient-to-br from-yellow-50 to-orange-50">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-semibold">Monthly Plan</span>
-                        <span className="text-lg font-bold text-green-600">₹{provider.monthlyPrice}</span>
+                        <span className="text-lg font-bold text-green-600">
+                          ₹{provider.monthlyPrice}
+                        </span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">60 tiffins (2 meals/day for 30 days)</p>
+                      <p className="text-sm text-gray-600 mb-2">
+                        60 tiffins (2 meals/day for 30 days)
+                      </p>
                       <div className="flex items-center text-xs text-gray-500">
                         <Zap className="w-3 h-3 mr-1" />
                         Best value & savings
@@ -244,7 +286,11 @@ const ProviderDetail = () => {
                   </h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                     {provider.deliverySlots.map((slot) => (
-                      <Badge key={slot} variant="outline" className="justify-center py-2">
+                      <Badge
+                        key={slot}
+                        variant="outline"
+                        className="justify-center py-2"
+                      >
                         {slot}
                       </Badge>
                     ))}
@@ -261,19 +307,31 @@ const ProviderDetail = () => {
             >
               <Card className="mb-8">
                 <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold mb-4">Customer Reviews</h3>
+                  <h3 className="text-xl font-semibold mb-4">
+                    Customer Reviews
+                  </h3>
                   <div className="space-y-4 mb-6">
                     {provider.testimonials.map((testimonial, index) => (
-                      <div key={index} className="border-b pb-4 last:border-b-0">
+                      <div
+                        key={index}
+                        className="border-b pb-4 last:border-b-0"
+                      >
                         <div className="flex items-center justify-between mb-2">
-                          <span className="font-semibold">{testimonial.name}</span>
+                          <span className="font-semibold">
+                            {testimonial.name}
+                          </span>
                           <div className="flex">
                             {[...Array(testimonial.rating)].map((_, i) => (
-                              <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                              <Star
+                                key={i}
+                                className="w-4 h-4 fill-yellow-400 text-yellow-400"
+                              />
                             ))}
                           </div>
                         </div>
-                        <p className="text-gray-600 text-sm">{testimonial.comment}</p>
+                        <p className="text-gray-600 text-sm">
+                          {testimonial.comment}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -283,7 +341,9 @@ const ProviderDetail = () => {
                     <h4 className="font-semibold mb-4">Write a Review</h4>
                     <form onSubmit={handleReviewSubmit} className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium mb-2">Your Name</label>
+                        <label className="block text-sm font-medium mb-2">
+                          Your Name
+                        </label>
                         <Input
                           value={reviewerName}
                           onChange={(e) => setReviewerName(e.target.value)}
@@ -291,7 +351,9 @@ const ProviderDetail = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2">Rating</label>
+                        <label className="block text-sm font-medium mb-2">
+                          Rating
+                        </label>
                         <div className="flex space-x-1">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <button
@@ -299,7 +361,7 @@ const ProviderDetail = () => {
                               type="button"
                               onClick={() => setRating(star)}
                               className={`w-8 h-8 ${
-                                star <= rating ? 'text-yellow-400' : 'text-gray-300'
+                                star <= rating ? "bg-yellow-400" : "bg-gray-400"
                               }`}
                             >
                               <Star className="w-full h-full fill-current" />
@@ -308,7 +370,9 @@ const ProviderDetail = () => {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2">Your Review</label>
+                        <label className="block text-sm font-medium mb-2">
+                          Your Review
+                        </label>
                         <Textarea
                           value={reviewText}
                           onChange={(e) => setReviewText(e.target.value)}
@@ -316,7 +380,10 @@ const ProviderDetail = () => {
                           rows={3}
                         />
                       </div>
-                      <Button type="submit" className="bg-orange-600 hover:bg-orange-700">
+                      <Button
+                        type="submit"
+                        className="bg-orange-600 hover:bg-orange-700"
+                      >
                         <Send className="w-4 h-4 mr-2" />
                         Submit Review
                       </Button>
@@ -341,31 +408,35 @@ const ProviderDetail = () => {
                     <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-3">
                       <ChefHat className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">Contact Provider</h3>
-                    <p className="text-sm text-gray-600">Get in touch to place your order</p>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                      Contact Provider
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Get in touch to place your order
+                    </p>
                   </div>
-                  
+
                   <div className="space-y-3 mb-6">
-                    <Button 
-                      onClick={() => handleContact('phone')}
+                    <Button
+                      onClick={() => handleContact("phone")}
                       className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white"
                       size="lg"
                     >
                       <Phone className="w-5 h-5 mr-2" />
                       Call Now
                     </Button>
-                    
-                    <Button 
-                      onClick={() => handleContact('whatsapp')}
+
+                    <Button
+                      onClick={() => handleContact("whatsapp")}
                       className="w-full flex items-center justify-center bg-green-600 hover:bg-green-700 text-white"
                       size="lg"
                     >
                       <MessageCircle className="w-5 h-5 mr-2" />
                       WhatsApp
                     </Button>
-                    
-                    <Button 
-                      onClick={() => handleContact('email')}
+
+                    <Button
+                      onClick={() => handleContact("email")}
                       className="w-full flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white"
                       size="lg"
                     >
@@ -377,13 +448,21 @@ const ProviderDetail = () => {
                   <div className="border-t pt-6">
                     <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-semibold text-gray-800">Quick Order</span>
-                        <Badge className="bg-yellow-100 text-yellow-800">Popular</Badge>
+                        <span className="font-semibold text-gray-800">
+                          Quick Order
+                        </span>
+                        <Badge className="bg-yellow-100 text-yellow-800">
+                          Popular
+                        </Badge>
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">Start with our weekly plan and experience the taste!</p>
-                      <div className="text-lg font-bold text-green-600 mb-2">₹{provider.weeklyPrice}/week</div>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Start with our weekly plan and experience the taste!
+                      </p>
+                      <div className="text-lg font-bold text-green-600 mb-2">
+                        ₹{provider.weeklyPrice}/week
+                      </div>
                     </div>
-                    
+
                     <Button className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white text-lg py-3 font-semibold">
                       Order Now
                     </Button>

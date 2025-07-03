@@ -1,5 +1,12 @@
-import { Link } from 'react-router-dom';
-import { UtensilsCrossed, Facebook, Twitter, Instagram, Mail, Phone } from 'lucide-react';
+import { Link } from "react-router-dom";
+import {
+  UtensilsCrossed,
+  Facebook,
+  Twitter,
+  Instagram,
+  Mail,
+  Phone,
+} from "lucide-react";
 
 const Footer = () => {
   return (
@@ -15,8 +22,8 @@ const Footer = () => {
               </span>
             </div>
             <p className="text-gray-400 text-sm">
-              Connecting you with the best homemade tiffin services in your area. 
-              Healthy, affordable, and delicious meals delivered fresh.
+              Connecting you with the best homemade tiffin services in your
+              area. Healthy, affordable, and delicious meals delivered fresh.
             </p>
           </div>
 
@@ -24,16 +31,28 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Quick Links</h3>
             <div className="space-y-2">
-              <Link to="/" className="block text-gray-400 hover:text-orange-500 transition-colors">
+              <Link
+                to="/"
+                className="block text-gray-400 hover:text-orange-500 transition-colors"
+              >
                 Home
               </Link>
-              <Link to="/search" className="block text-gray-400 hover:text-orange-500 transition-colors">
+              <Link
+                to="/search"
+                className="block text-gray-400 hover:text-orange-500 transition-colors"
+              >
                 Search Providers
               </Link>
-              <Link to="/become-provider" className="block text-gray-400 hover:text-orange-500 transition-colors">
+              <Link
+                to="/become-provider"
+                className="block text-gray-400 hover:text-orange-500 transition-colors"
+              >
                 Become a Provider
               </Link>
-              <Link to="/about" className="block text-gray-400 hover:text-orange-500 transition-colors">
+              <Link
+                to="/about"
+                className="block text-gray-400 hover:text-orange-500 transition-colors"
+              >
                 About Us
               </Link>
             </div>
@@ -43,16 +62,28 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Support</h3>
             <div className="space-y-2">
-              <a href="#" className="block text-gray-400 hover:text-orange-500 transition-colors">
+              <a
+                href="#"
+                className="block text-gray-400 hover:text-orange-500 transition-colors"
+              >
                 Help Center
               </a>
-              <a href="#" className="block text-gray-400 hover:text-orange-500 transition-colors">
+              <a
+                href="#"
+                className="block text-gray-400 hover:text-orange-500 transition-colors"
+              >
                 Terms of Service
               </a>
-              <a href="#" className="block text-gray-400 hover:text-orange-500 transition-colors">
+              <a
+                href="#"
+                className="block text-gray-400 hover:text-orange-500 transition-colors"
+              >
                 Privacy Policy
               </a>
-              <a href="#" className="block text-gray-400 hover:text-orange-500 transition-colors">
+              <a
+                href="#"
+                className="block text-gray-400 hover:text-orange-500 transition-colors"
+              >
                 Contact Us
               </a>
             </div>
@@ -71,16 +102,25 @@ const Footer = () => {
                 <span className="text-sm">+91 9876543210</span>
               </div>
             </div>
-            
+
             {/* Social Links */}
             <div className="flex space-x-4 mt-4">
-              <a href="#" className="text-gray-400 hover:text-orange-500 transition-colors">
+              <a
+                href="#"
+                className="text-gray-400 hover:text-orange-500 transition-colors"
+              >
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-orange-500 transition-colors">
+              <a
+                href="#"
+                className="text-gray-400 hover:text-orange-500 transition-colors"
+              >
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-orange-500 transition-colors">
+              <a
+                href="#"
+                className="text-gray-400 hover:text-orange-500 transition-colors"
+              >
                 <Instagram className="h-5 w-5" />
               </a>
             </div>
@@ -89,7 +129,8 @@ const Footer = () => {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400 text-sm">
-            © 2024 TiffinFind. All rights reserved. Made with ❤️ for food lovers.
+            © 2024 TiffinFind. All rights reserved. Made with ❤️ for food
+            lovers.
           </p>
         </div>
       </div>

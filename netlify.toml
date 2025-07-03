@@ -1,0 +1,6 @@
+[build]
+  command = "npm run build"     # adjust if your command is different
+  publish = "build"              # adjust to "build" or your actual output folder
+
+[context.main.environment]
+  NODE_VERSION = "20.16.0"
