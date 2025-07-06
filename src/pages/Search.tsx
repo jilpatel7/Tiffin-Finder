@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -11,6 +11,8 @@ import {
   Star,
   Clock,
   Utensils,
+  ShoppingCart,
+  Percent,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,9 +34,15 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
-import { tiffinProviders } from "@/data/providers";
+import { ProviderService } from "@/services/providerService";
+import type { ProviderWithDetails } from "@/lib/supabase";
 
 const Search = () => {
+  const [providers, setProviders] = useState<ProviderWithDetails[]>([]);
+  const [areas, setAreas] = useState<string[]>([]);
+  const [cuisines, setCuisines] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedArea, setSelectedArea] = useState("all");
   const [selectedCuisine, setSelectedCuisine] = useState("all");
@@ -43,33 +51,63 @@ const Search = () => {
   const [priceRange, setPriceRange] = useState([50, 300]);
   const [sortBy, setSortBy] = useState("rating");
 
-  const areas = [...new Set(tiffinProviders.map((p) => p.area))];
-  const cuisines = [...new Set(tiffinProviders.flatMap((p) => p.cuisine))];
+  // Load data from Supabase
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [providersData, areasData, cuisinesData] = await Promise.all([
+          ProviderService.getAllProviders(),
+          ProviderService.getUniqueAreas(),
+          ProviderService.getUniqueCuisines(),
+        ]);
+
+        setProviders(providersData);
+        setAreas(areasData);
+        setCuisines(cuisinesData);
+      } catch (error) {
+        console.error("Error loading data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   const filteredProviders = useMemo(() => {
-    const filtered = tiffinProviders.filter((provider) => {
+    const filtered = providers.filter((provider) => {
       const matchesSearch =
         provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        provider.area.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        provider.cuisine.some((c) =>
+        provider.areas.some((area) =>
+          area.toLowerCase().includes(searchTerm.toLowerCase())
+        ) ||
+        provider.cuisines.some((c) =>
           c.toLowerCase().includes(searchTerm.toLowerCase())
         );
 
       const matchesArea =
-        selectedArea === "all" || provider.area === selectedArea;
+        selectedArea === "all" || provider.areas.includes(selectedArea);
       const matchesCuisine =
-        selectedCuisine === "all" || provider.cuisine.includes(selectedCuisine);
+        selectedCuisine === "all" ||
+        provider.cuisines.includes(selectedCuisine);
       const matchesType =
         selectedType === "all" ||
-        provider.type === selectedType ||
-        provider.type === "both";
+        provider.food_type === selectedType ||
+        provider.food_type === "both";
       const matchesDelivery =
         selectedDelivery === "all" ||
-        provider.deliveryType === selectedDelivery ||
-        provider.deliveryType === "both";
+        provider.delivery_types.includes(selectedDelivery);
+
+      // Check price range against tiffin items
+      const minPrice = Math.min(
+        ...provider.tiffin_items.map((item) => item.price)
+      );
+      const maxPrice = Math.max(
+        ...provider.tiffin_items.map((item) => item.price)
+      );
       const matchesPrice =
-        provider.price.min >= priceRange[0] &&
-        provider.price.max <= priceRange[1];
+        minPrice >= priceRange[0] && maxPrice <= priceRange[1];
 
       return (
         matchesSearch &&
@@ -86,12 +124,30 @@ const Search = () => {
       switch (sortBy) {
         case "rating":
           return b.rating - a.rating;
-        case "price-low":
-          return a.price.min - b.price.min;
-        case "price-high":
-          return b.price.max - a.price.max;
+
+        case "price-low": {
+          const aMinPrice = Math.min(
+            ...a.tiffin_items.map((item) => item.price)
+          );
+          const bMinPrice = Math.min(
+            ...b.tiffin_items.map((item) => item.price)
+          );
+          return aMinPrice - bMinPrice;
+        }
+
+        case "price-high": {
+          const aMaxPrice = Math.max(
+            ...a.tiffin_items.map((item) => item.price)
+          );
+          const bMaxPrice = Math.max(
+            ...b.tiffin_items.map((item) => item.price)
+          );
+          return bMaxPrice - aMaxPrice;
+        }
+
         case "reviews":
-          return b.reviews - a.reviews;
+          return b.review_count - a.review_count;
+
         default:
           return 0;
       }
@@ -99,6 +155,7 @@ const Search = () => {
 
     return filtered;
   }, [
+    providers,
     searchTerm,
     selectedArea,
     selectedCuisine,
@@ -193,8 +250,8 @@ const Search = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="delivery">Delivery</SelectItem>
-            <SelectItem value="pickup">Pickup</SelectItem>
+            <SelectItem value="Delivery at Doorstep">Delivery</SelectItem>
+            <SelectItem value="Pickup Only">Pickup</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -248,6 +305,17 @@ const Search = () => {
       </div>
     </div>
   );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading providers...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-16 md:pb-8">
@@ -356,113 +424,163 @@ const Search = () => {
               className="grid grid-cols-1 md:grid-cols-2 gap-6"
             >
               <AnimatePresence>
-                {filteredProviders.map((provider) => (
-                  <motion.div
-                    key={provider.id}
-                    variants={cardVariants}
-                    whileHover={{ scale: 1.02 }}
-                    layout
-                  >
-                    <Card className="h-full overflow-hidden border-2 border-gray-100 hover:border-orange-200 transition-all duration-300">
-                      <div className="aspect-video relative overflow-hidden">
-                        <img
-                          src={provider.image}
-                          alt={provider.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute top-4 left-4">
-                          <Badge
-                            variant={
-                              provider.type === "veg"
-                                ? "secondary"
-                                : "destructive"
-                            }
-                          >
-                            {provider.type === "veg"
-                              ? "🌱 Veg"
-                              : provider.type === "non-veg"
-                              ? "🍖 Non-Veg"
-                              : "🌱🍖 Both"}
-                          </Badge>
-                        </div>
-                        <div className="absolute top-4 right-4 bg-white rounded-full px-2 py-1 text-sm font-medium flex items-center">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-                          {provider.rating}
-                        </div>
-                      </div>
+                {filteredProviders.map((provider) => {
+                  const primaryImage =
+                    provider.gallery.find((img) => img.is_primary)?.image_url ||
+                    provider.gallery[0]?.image_url ||
+                    "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg";
 
-                      <CardContent className="p-6">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-xl font-bold text-gray-900">
-                            {provider.name}
-                          </h3>
-                          <span className="text-lg font-bold text-orange-600">
-                            ₹{provider.price.min}-{provider.price.max}
-                          </span>
-                        </div>
+                  const minPrice = Math.min(
+                    ...provider.tiffin_items.map((item) => item.price)
+                  );
+                  const maxPrice = Math.max(
+                    ...provider.tiffin_items.map((item) => item.price)
+                  );
 
-                        <div className="flex items-center text-gray-600 mb-2">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          <span className="text-sm">{provider.area}</span>
-                        </div>
-
-                        <div className="flex items-center text-gray-600 mb-3">
-                          <Utensils className="h-4 w-4 mr-1" />
-                          <span className="text-sm">
-                            {provider.cuisine.join(", ")}
-                          </span>
-                        </div>
-
-                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                          {provider.description}
-                        </p>
-
-                        <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                          <div className="flex items-center">
-                            <Clock className="h-4 w-4 mr-1" />
-                            <span>{provider.timing.lunch}</span>
+                  return (
+                    <motion.div
+                      key={provider.id}
+                      variants={cardVariants}
+                      whileHover={{ scale: 1.02 }}
+                      layout
+                    >
+                      <Card className="h-full overflow-hidden border-2 border-gray-100 hover:border-orange-200 transition-all duration-300">
+                        <div className="aspect-video relative overflow-hidden">
+                          <img
+                            src={primaryImage}
+                            alt={provider.name}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute top-4 left-4">
+                            <Badge
+                              variant={
+                                provider.food_type === "veg"
+                                  ? "secondary"
+                                  : "destructive"
+                              }
+                            >
+                              {provider.food_type === "veg"
+                                ? "🌱 Veg"
+                                : provider.food_type === "non-veg"
+                                ? "🍖 Non-Veg"
+                                : "🌱🍖 Both"}
+                            </Badge>
                           </div>
-                          <span className="text-xs">
-                            {provider.reviews} reviews
-                          </span>
+                          <div className="absolute top-4 right-4 bg-white rounded-full px-2 py-1 text-sm font-medium flex items-center">
+                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
+                            {provider.rating}
+                          </div>
+                          {provider.allow_single_tiffin && (
+                            <div className="absolute bottom-4 left-4">
+                              <Badge className="bg-green-100 text-green-800">
+                                <ShoppingCart className="h-3 w-3 mr-1" />
+                                Single Tiffin Available
+                              </Badge>
+                            </div>
+                          )}
                         </div>
 
-                        <div className="flex items-center justify-between">
-                          <div className="flex space-x-2">
-                            <Button size="sm" variant="outline" asChild>
-                              <a href={`tel:${provider.contact.phone}`}>
-                                <Phone className="h-4 w-4" />
-                              </a>
-                            </Button>
-                            <Button size="sm" variant="outline" asChild>
-                              <a
-                                href={`https://wa.me/${provider.contact.whatsapp.replace(
-                                  "+",
-                                  ""
-                                )}`}
-                              >
-                                <MessageCircle className="h-4 w-4" />
-                              </a>
-                            </Button>
-                            <Button size="sm" variant="outline" asChild>
-                              <a href={`mailto:${provider.contact.email}`}>
-                                <Mail className="h-4 w-4" />
-                              </a>
+                        <CardContent className="p-6">
+                          <div className="flex justify-between items-start mb-2">
+                            <h3 className="text-xl font-bold text-gray-900">
+                              {provider.name}
+                            </h3>
+                            <span className="text-lg font-bold text-orange-600">
+                              ₹{minPrice}-{maxPrice}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center text-gray-600 mb-2">
+                            <MapPin className="h-4 w-4 mr-1" />
+                            <span className="text-sm">
+                              {provider.areas.join(", ")}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center text-gray-600 mb-3">
+                            <Utensils className="h-4 w-4 mr-1" />
+                            <span className="text-sm">
+                              {provider.cuisines.join(", ")}
+                            </span>
+                          </div>
+
+                          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                            {provider.description}
+                          </p>
+
+                          {/* Show best pricing plan if available */}
+                          {provider.pricing_plans.length > 0 && (
+                            <div className="mb-4 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">
+                                  Best Plan:
+                                </span>
+                                {provider.pricing_plans[0]
+                                  .discount_percentage && (
+                                  <Badge className="bg-red-100 text-red-800 text-xs">
+                                    <Percent className="w-3 h-3 mr-1" />
+                                    {
+                                      provider.pricing_plans[0]
+                                        .discount_percentage
+                                    }
+                                    % OFF
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                {provider.pricing_plans[0].description} - ₹
+                                {provider.pricing_plans[0].price}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                            <div className="flex items-center">
+                              <Clock className="h-4 w-4 mr-1" />
+                              <span>{provider.timing_lunch}</span>
+                            </div>
+                            <span className="text-xs">
+                              {provider.review_count} reviews
+                            </span>
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <div className="flex space-x-2">
+                              <Button size="sm" variant="outline" asChild>
+                                <a href={`tel:${provider.phone}`}>
+                                  <Phone className="h-4 w-4" />
+                                </a>
+                              </Button>
+                              <Button size="sm" variant="outline" asChild>
+                                <a
+                                  href={`https://wa.me/${
+                                    provider.whatsapp?.replace("+", "") ||
+                                    provider.phone.replace("+", "")
+                                  }`}
+                                >
+                                  <MessageCircle className="h-4 w-4" />
+                                </a>
+                              </Button>
+                              <Button size="sm" variant="outline" asChild>
+                                <a href={`mailto:${provider.email}`}>
+                                  <Mail className="h-4 w-4" />
+                                </a>
+                              </Button>
+                            </div>
+                            <Button
+                              asChild
+                              className="bg-orange-600 hover:bg-orange-700"
+                            >
+                              <Link to={`/provider/${provider.id}`}>
+                                View Details
+                              </Link>
                             </Button>
                           </div>
-                          <Button
-                            asChild
-                            className="bg-orange-600 hover:bg-orange-700"
-                          >
-                            <Link to={`/provider/${provider.id}`}>
-                              View Details
-                            </Link>
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
               </AnimatePresence>
             </motion.div>
 

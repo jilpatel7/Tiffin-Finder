@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,17 +21,50 @@ import {
   Users,
   Zap,
   Send,
+  Percent,
+  ShoppingCart,
 } from "lucide-react";
-import { tiffinProviders } from "@/data/providers";
+import { ProviderService } from "@/services/providerService";
+import type { ProviderWithDetails } from "@/lib/supabase";
 import { toast } from "sonner";
 
 const ProviderDetail = () => {
   const { id } = useParams();
-  const provider = tiffinProviders.find((p) => p.id === id);
+  const [provider, setProvider] = useState<ProviderWithDetails | null>(null);
+  const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [reviewerName, setReviewerName] = useState("");
+
+  useEffect(() => {
+    const loadProvider = async () => {
+      if (!id) return;
+
+      try {
+        setLoading(true);
+        const providerData = await ProviderService.getProviderById(id);
+        setProvider(providerData);
+      } catch (error) {
+        console.error("Error loading provider:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProvider();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading provider details...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!provider) {
     return (
@@ -51,31 +84,52 @@ const ProviderDetail = () => {
   const handleContact = (type: "phone" | "whatsapp" | "email") => {
     switch (type) {
       case "phone":
-        window.open(`tel:${provider.contact.phone}`);
+        window.open(`tel:${provider.phone}`);
         break;
       case "whatsapp":
         window.open(
-          `https://wa.me/${provider.contact.whatsapp.replace("+", "")}`
+          `https://wa.me/${(provider.whatsapp || provider.phone).replace(
+            "+",
+            ""
+          )}`
         );
         break;
       case "email":
-        window.open(`mailto:${provider.contact.email}`);
+        window.open(`mailto:${provider.email}`);
         break;
     }
   };
 
-  const handleReviewSubmit = (e: React.FormEvent) => {
+  const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!reviewerName || !reviewText || rating === 0) {
       toast.error("Please fill in all fields and select a rating");
       return;
     }
 
-    toast.success("Review submitted successfully!");
-    setReviewerName("");
-    setReviewText("");
-    setRating(0);
+    try {
+      await ProviderService.addTestimonial(provider.id, {
+        customer_name: reviewerName,
+        rating,
+        comment: reviewText,
+      });
+
+      toast.success(
+        "Review submitted successfully! It will be visible after verification."
+      );
+      setReviewerName("");
+      setReviewText("");
+      setRating(0);
+    } catch (error) {
+      console.error("Failed to submit review:", error);
+      toast.error("Failed to submit review. Please try again.");
+    }
   };
+
+  const primaryImage =
+    provider.gallery.find((img) => img.is_primary)?.image_url ||
+    provider.gallery[0]?.image_url ||
+    "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg";
 
   return (
     <div className="min-h-screen py-8 px-4">
@@ -101,30 +155,34 @@ const ProviderDetail = () => {
             >
               <div className="aspect-video rounded-lg overflow-hidden mb-4">
                 <img
-                  src={provider.gallery[selectedImage]}
+                  src={
+                    provider.gallery[selectedImage]?.image_url || primaryImage
+                  }
                   alt={provider.name}
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="flex space-x-2 overflow-x-auto">
-                {provider.gallery.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImage(index)}
-                    className={`flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 ${
-                      selectedImage === index
-                        ? "border-yellow-500"
-                        : "border-gray-200"
-                    }`}
-                  >
-                    <img
-                      src={image}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
+              {provider.gallery.length > 1 && (
+                <div className="flex space-x-2 overflow-x-auto">
+                  {provider.gallery.map((image, index) => (
+                    <button
+                      key={image.id}
+                      onClick={() => setSelectedImage(index)}
+                      className={`flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 ${
+                        selectedImage === index
+                          ? "border-yellow-500"
+                          : "border-gray-200"
+                      }`}
+                    >
+                      <img
+                        src={image.image_url}
+                        alt={image.alt_text || ""}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
             </motion.div>
 
             {/* Provider Info */}
@@ -142,30 +200,48 @@ const ProviderDetail = () => {
                       </h1>
                       <div className="flex items-center text-gray-600 mb-2">
                         <MapPin className="w-4 h-4 mr-1" />
-                        <span>{provider.location.address}</span>
+                        <span>{provider.address}</span>
                       </div>
-                      <div className="flex items-center space-x-4 text-sm">
+                      <div className="flex items-center space-x-4 text-sm mb-2">
                         <div className="flex items-center">
                           <Star className="w-4 h-4 mr-1 fill-yellow-400 text-yellow-400" />
                           <span className="font-semibold">
                             {provider.rating}
                           </span>
                           <span className="text-gray-500 ml-1">
-                            ({provider.reviews} reviews)
+                            ({provider.review_count} reviews)
                           </span>
                         </div>
                         <Badge variant="outline">
-                          {provider.foodType === "both"
+                          {provider.food_type === "both"
                             ? "Veg & Non-Veg"
-                            : provider.foodType === "veg"
+                            : provider.food_type === "veg"
                             ? "Vegetarian"
                             : "Non-Vegetarian"}
                         </Badge>
                       </div>
+                      <div className="flex flex-wrap gap-2">
+                        {provider.areas.map((area) => (
+                          <Badge
+                            key={area}
+                            variant="secondary"
+                            className="text-xs"
+                          >
+                            {area}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                     <div className="text-right">
                       <div className="text-2xl font-bold text-green-600 mb-1">
-                        {provider.priceRange}
+                        ₹
+                        {Math.min(
+                          ...provider.tiffin_items.map((item) => item.price)
+                        )}
+                        -
+                        {Math.max(
+                          ...provider.tiffin_items.map((item) => item.price)
+                        )}
                       </div>
                       <div className="text-sm text-gray-500">per meal</div>
                     </div>
@@ -179,9 +255,13 @@ const ProviderDetail = () => {
                       <div>
                         <div className="font-semibold text-sm">Timings</div>
                         <div className="text-sm text-gray-600">
-                          Lunch: {provider.timing.lunch}
-                          <br />
-                          Dinner: {provider.timing.dinner}
+                          {provider.timing_lunch &&
+                            `Lunch: ${provider.timing_lunch}`}
+                          {provider.timing_lunch && provider.timing_dinner && (
+                            <br />
+                          )}
+                          {provider.timing_dinner &&
+                            `Dinner: ${provider.timing_dinner}`}
                         </div>
                       </div>
                     </div>
@@ -190,7 +270,7 @@ const ProviderDetail = () => {
                       <div>
                         <div className="font-semibold text-sm">Delivery</div>
                         <div className="text-sm text-gray-600 capitalize">
-                          {provider.deliveryType}
+                          {provider.delivery_types.join(", ")}
                         </div>
                       </div>
                     </div>
@@ -202,7 +282,7 @@ const ProviderDetail = () => {
                       Cuisines
                     </h3>
                     <div className="flex flex-wrap gap-2">
-                      {provider.cuisine.map((cuisine) => (
+                      {provider.cuisines.map((cuisine) => (
                         <Badge key={cuisine} variant="secondary">
                           {cuisine}
                         </Badge>
@@ -213,7 +293,7 @@ const ProviderDetail = () => {
                   <div>
                     <h3 className="font-semibold mb-2">Specialties</h3>
                     <div className="flex flex-wrap gap-2">
-                      {provider.specialties.map((specialty) => (
+                      {provider.specialties?.map((specialty) => (
                         <Badge key={specialty} variant="outline">
                           {specialty}
                         </Badge>
@@ -224,7 +304,7 @@ const ProviderDetail = () => {
               </Card>
             </motion.div>
 
-            {/* Pricing Plans */}
+            {/* Tiffin Items */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -233,40 +313,128 @@ const ProviderDetail = () => {
               <Card className="mb-8">
                 <CardContent className="p-6">
                   <h3 className="text-xl font-semibold mb-4 flex items-center">
+                    <ShoppingCart className="w-5 h-5 mr-2" />
+                    Available Tiffin Items
+                  </h3>
+                  <div className="grid gap-4">
+                    {provider.tiffin_items.map((tiffin) => (
+                      <div
+                        key={tiffin.id}
+                        className="border rounded-lg p-4 bg-gradient-to-br from-orange-50 to-yellow-50"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-semibold text-lg">
+                            {tiffin.name}
+                          </h4>
+                          <span className="text-xl font-bold text-green-600">
+                            ₹{tiffin.price}
+                          </span>
+                        </div>
+                        <p className="text-gray-600 text-sm mb-3">
+                          {tiffin.description}
+                        </p>
+                        <div className="mb-3">
+                          <span className="text-sm font-medium text-gray-700">
+                            What's included:
+                          </span>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {tiffin.contents.map((item, index) => (
+                              <Badge
+                                key={index}
+                                variant="outline"
+                                className="text-xs"
+                              >
+                                {item}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        {provider.allow_single_tiffin && (
+                          <Badge className="bg-green-100 text-green-800">
+                            Available for single purchase
+                          </Badge>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {!provider.allow_single_tiffin && (
+                    <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                      <p className="text-sm text-blue-800">
+                        <strong>Note:</strong> Single tiffin purchases not
+                        available. Please choose from weekly or monthly plans
+                        below.
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Pricing Plans */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              <Card className="mb-8">
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-semibold mb-4 flex items-center">
                     <IndianRupee className="w-5 h-5 mr-2" />
-                    Pricing Plans
+                    Subscription Plans
                   </h3>
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className="border rounded-lg p-4 bg-gradient-to-br from-yellow-50 to-orange-50">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-semibold">Weekly Plan</span>
-                        <span className="text-lg font-bold text-green-600">
-                          ₹{provider.weeklyPrice}
-                        </span>
+                    {provider.pricing_plans.map((plan) => (
+                      <div
+                        key={plan.id}
+                        className="border rounded-lg p-4 bg-gradient-to-br from-yellow-50 to-orange-50"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-semibold capitalize">
+                            {plan.plan_type} Plan (
+                            {plan.meals_per_day === 1
+                              ? "Lunch Only"
+                              : "Lunch & Dinner"}
+                            )
+                          </span>
+                          <div className="text-right">
+                            <span className="text-lg font-bold text-green-600">
+                              ₹{plan.price}
+                            </span>
+                            {plan.original_price && (
+                              <div className="text-sm">
+                                <span className="line-through text-gray-500">
+                                  ₹{plan.original_price}
+                                </span>
+                                {plan.discount_percentage && (
+                                  <Badge className="ml-1 bg-red-100 text-red-800 text-xs">
+                                    <Percent className="w-3 h-3 mr-1" />
+                                    {plan.discount_percentage}% OFF
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">
+                          {plan.description}
+                        </p>
+                        <div className="flex items-center text-xs text-gray-500">
+                          {plan.meals_per_day === 1 ? (
+                            <Users className="w-3 h-3 mr-1" />
+                          ) : (
+                            <Zap className="w-3 h-3 mr-1" />
+                          )}
+                          {plan.meals_per_day === 1
+                            ? "Perfect for lunch"
+                            : "Complete meal solution"}
+                        </div>
+                        {plan.discount_percentage && plan.original_price && (
+                          <div className="mt-2 text-xs text-green-600 font-medium">
+                            You save ₹{plan.original_price - plan.price}!
+                          </div>
+                        )}
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">
-                        14 tiffins (2 meals/day for 7 days)
-                      </p>
-                      <div className="flex items-center text-xs text-gray-500">
-                        <Users className="w-3 h-3 mr-1" />
-                        Perfect for individuals
-                      </div>
-                    </div>
-                    <div className="border rounded-lg p-4 bg-gradient-to-br from-yellow-50 to-orange-50">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-semibold">Monthly Plan</span>
-                        <span className="text-lg font-bold text-green-600">
-                          ₹{provider.monthlyPrice}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2">
-                        60 tiffins (2 meals/day for 30 days)
-                      </p>
-                      <div className="flex items-center text-xs text-gray-500">
-                        <Zap className="w-3 h-3 mr-1" />
-                        Best value & savings
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -276,7 +444,7 @@ const ProviderDetail = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
             >
               <Card className="mb-8">
                 <CardContent className="p-6">
@@ -285,9 +453,9 @@ const ProviderDetail = () => {
                     Delivery Slots
                   </h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {provider.deliverySlots.map((slot) => (
+                    {provider.delivery_slots.map((slot, index) => (
                       <Badge
-                        key={slot}
+                        key={index}
                         variant="outline"
                         className="justify-center py-2"
                       >
@@ -303,7 +471,7 @@ const ProviderDetail = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
             >
               <Card className="mb-8">
                 <CardContent className="p-6">
@@ -311,14 +479,14 @@ const ProviderDetail = () => {
                     Customer Reviews
                   </h3>
                   <div className="space-y-4 mb-6">
-                    {provider.testimonials.map((testimonial, index) => (
+                    {provider.testimonials.map((testimonial) => (
                       <div
-                        key={index}
+                        key={testimonial.id}
                         className="border-b pb-4 last:border-b-0"
                       >
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-semibold">
-                            {testimonial.name}
+                            {testimonial.customer_name}
                           </span>
                           <div className="flex">
                             {[...Array(testimonial.rating)].map((_, i) => (
@@ -361,7 +529,9 @@ const ProviderDetail = () => {
                               type="button"
                               onClick={() => setRating(star)}
                               className={`w-8 h-8 ${
-                                star <= rating ? "bg-yellow-400" : "bg-gray-400"
+                                star <= rating
+                                  ? "text-yellow-400"
+                                  : "text-gray-300"
                               }`}
                             >
                               <Star className="w-full h-full fill-current" />
@@ -449,18 +619,30 @@ const ProviderDetail = () => {
                     <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 mb-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-semibold text-gray-800">
-                          Quick Order
+                          Best Value Plan
                         </span>
                         <Badge className="bg-yellow-100 text-yellow-800">
-                          Popular
+                          Recommended
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">
-                        Start with our weekly plan and experience the taste!
-                      </p>
-                      <div className="text-lg font-bold text-green-600 mb-2">
-                        ₹{provider.weeklyPrice}/week
-                      </div>
+                      {provider.pricing_plans.length > 0 && (
+                        <>
+                          <p className="text-sm text-gray-600 mb-3">
+                            {provider.pricing_plans[0].description}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <div className="text-lg font-bold text-green-600">
+                              ₹{provider.pricing_plans[0].price}
+                            </div>
+                            {provider.pricing_plans[0].discount_percentage && (
+                              <Badge className="bg-red-100 text-red-800">
+                                {provider.pricing_plans[0].discount_percentage}%
+                                OFF
+                              </Badge>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
 
                     <Button className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white text-lg py-3 font-semibold">
