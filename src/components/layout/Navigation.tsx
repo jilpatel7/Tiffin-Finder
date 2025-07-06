@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Home, Search, Plus, Info, Menu, UtensilsCrossed } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Home, Search, Plus, Info, UtensilsCrossed } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { HamburgerMenuIcon } from "@radix-ui/react-icons";
 
 const Navigation = () => {
   const location = useLocation();
@@ -60,7 +60,6 @@ const Navigation = () => {
           </div>
         </div>
       </nav>
-
       {/* Mobile Navigation Header */}
       <nav className="md:hidden bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="px-4 h-16 flex items-center justify-between">
@@ -73,9 +72,7 @@ const Navigation = () => {
 
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-6 w-6" />
-              </Button>
+              <HamburgerMenuIcon className="h-5 w-5" />
             </SheetTrigger>
             <SheetContent side="right" className="w-72">
               <div className="flex flex-col space-y-4 mt-8">
@@ -99,7 +96,6 @@ const Navigation = () => {
           </Sheet>
         </div>
       </nav>
-
       {/* Mobile Bottom Navigation */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
         <div className="grid grid-cols-4 h-16">

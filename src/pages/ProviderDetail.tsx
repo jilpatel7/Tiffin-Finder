@@ -10,7 +10,6 @@ import {
   Phone,
   MessageCircle,
   Mail,
-  Star,
   MapPin,
   Clock,
   Truck,
@@ -23,6 +22,7 @@ import {
   Send,
   Percent,
   ShoppingCart,
+  Star,
 } from "lucide-react";
 import { ProviderService } from "@/services/providerService";
 import type { ProviderWithDetails } from "@/lib/supabase";
@@ -34,6 +34,7 @@ const ProviderDetail = () => {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [rating, setRating] = useState(0);
+  const [hoveredRating, setHoveredRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [reviewerName, setReviewerName] = useState("");
 
@@ -350,7 +351,7 @@ const ProviderDetail = () => {
                           </div>
                         </div>
                         {provider.allow_single_tiffin && (
-                          <Badge className="bg-green-100 text-green-800">
+                          <Badge className="bg-green-100 text-green-800 hover:bg-green-500 hover:text-white transition-all duration-200 hover:shadow-md hover:scale-105">
                             Available for single purchase
                           </Badge>
                         )}
@@ -388,7 +389,7 @@ const ProviderDetail = () => {
                         key={plan.id}
                         className="border rounded-lg p-4 bg-gradient-to-br from-yellow-50 to-orange-50"
                       >
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="flex justify-between">
                           <span className="font-semibold capitalize">
                             {plan.plan_type} Plan (
                             {plan.meals_per_day === 1
@@ -400,15 +401,17 @@ const ProviderDetail = () => {
                             <span className="text-lg font-bold text-green-600">
                               ₹{plan.price}
                             </span>
+
                             {plan.original_price && (
-                              <div className="text-sm">
-                                <span className="line-through text-gray-500">
+                              <div className="text-sm mt-1">
+                                <div className="text-gray-500 line-through">
                                   ₹{plan.original_price}
-                                </span>
+                                </div>
                                 {plan.discount_percentage && (
-                                  <Badge className="ml-1 bg-red-100 text-red-800 text-xs">
+                                  <Badge className="mt-1 bg-red-100 text-red-800 text-xs hover:bg-red-200 hover:text-red-900 transition-colors duration-200">
+                                    {plan.discount_percentage}{" "}
                                     <Percent className="w-3 h-3 mr-1" />
-                                    {plan.discount_percentage}% OFF
+                                    OFF
                                   </Badge>
                                 )}
                               </div>
@@ -518,26 +521,45 @@ const ProviderDetail = () => {
                           placeholder="Enter your name"
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
+                      <div className="max-w-md bg-white rounded-lg">
+                        <label className="block text-sm font-medium mb-2 text-gray-700">
                           Rating
                         </label>
                         <div className="flex space-x-1">
                           {[1, 2, 3, 4, 5].map((star) => (
-                            <button
+                            // <button
+                            //   key={star}
+                            //   type="button"
+                            //   onClick={() => setRating(star)}
+                            //   onMouseEnter={() => setHoveredRating(star)}
+                            //   onMouseLeave={() => setHoveredRating(0)}
+                            //   className={`w-8 h-8 transition-colors duration-200 hover:scale-110 transform ${
+                            //     star <= (hoveredRating || rating)
+                            //       ? "text-yellow-400"
+                            //       : "text-gray-300"
+                            //   }`}
+                            // >
+                            <Star
                               key={star}
-                              type="button"
                               onClick={() => setRating(star)}
-                              className={`w-8 h-8 ${
-                                star <= rating
+                              onMouseEnter={() => setHoveredRating(star)}
+                              onMouseLeave={() => setHoveredRating(0)}
+                              className={`w-8 h-8 transition-colors duration-200 hover:scale-110 transform fill-current ${
+                                star <= (hoveredRating || rating)
                                   ? "text-yellow-400"
                                   : "text-gray-300"
                               }`}
-                            >
-                              <Star className="w-full h-full fill-current" />
-                            </button>
+                            />
+                            // </button>
                           ))}
                         </div>
+                        <p className="mt-2 text-sm text-gray-600">
+                          {rating > 0
+                            ? `You rated: ${rating} star${
+                                rating > 1 ? "s" : ""
+                              }`
+                            : "Click to rate"}
+                        </p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
@@ -621,7 +643,7 @@ const ProviderDetail = () => {
                         <span className="font-semibold text-gray-800">
                           Best Value Plan
                         </span>
-                        <Badge className="bg-yellow-100 text-yellow-800">
+                        <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 hover:text-yellow-900 transition-colors duration-200">
                           Recommended
                         </Badge>
                       </div>
@@ -635,7 +657,7 @@ const ProviderDetail = () => {
                               ₹{provider.pricing_plans[0].price}
                             </div>
                             {provider.pricing_plans[0].discount_percentage && (
-                              <Badge className="bg-red-100 text-red-800">
+                              <Badge className="bg-red-100 text-red-800 text-xs hover:bg-red-200 hover:text-red-900 transition-colors duration-200">
                                 {provider.pricing_plans[0].discount_percentage}%
                                 OFF
                               </Badge>

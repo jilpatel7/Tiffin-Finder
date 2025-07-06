@@ -341,20 +341,23 @@ const Search = () => {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-lg shadow-sm border p-6 mb-8"
         >
-          <div className="flex flex-col lg:flex-row gap-4 items-center">
-            <div className="flex-1 relative">
+          <div className="flex flex-col lg:flex-row gap-4 items-center w-full">
+            {/* Search - Always full width */}
+            <div className="w-full relative">
               <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
                 placeholder="Search by name, area, or cuisine..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-12"
+                className="pl-10 h-12 w-full"
               />
             </div>
 
-            <div className="flex gap-4 items-center">
+            {/* Sort & Filter - On mobile: side by side (50% each), on desktop: sort only */}
+            <div className="w-full flex gap-4 items-center lg:w-auto">
+              {/* Sort dropdown */}
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-1/2 lg:w-40">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
@@ -365,10 +368,10 @@ const Search = () => {
                 </SelectContent>
               </Select>
 
-              {/* Mobile Filter Button */}
+              {/* Filter button */}
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline" className="lg:hidden">
+                  <Button variant="outline" className="w-1/2 lg:hidden">
                     <Filter className="h-4 w-4 mr-2" />
                     Filters
                   </Button>
@@ -472,7 +475,7 @@ const Search = () => {
                           </div>
                           {provider.allow_single_tiffin && (
                             <div className="absolute bottom-4 left-4">
-                              <Badge className="bg-green-100 text-green-800">
+                              <Badge className="bg-green-100 text-green-800 text-xs hover:bg-green-500 hover:text-white transition-all duration-200 hover:shadow-md hover:scale-105">
                                 <ShoppingCart className="h-3 w-3 mr-1" />
                                 Single Tiffin Available
                               </Badge>
@@ -517,13 +520,13 @@ const Search = () => {
                                 </span>
                                 {provider.pricing_plans[0]
                                   .discount_percentage && (
-                                  <Badge className="bg-red-100 text-red-800 text-xs">
-                                    <Percent className="w-3 h-3 mr-1" />
+                                  <Badge className="bg-red-100 text-red-800 text-xs hover:bg-red-200 hover:text-red-900 transition-colors duration-200">
                                     {
                                       provider.pricing_plans[0]
                                         .discount_percentage
                                     }
-                                    % OFF
+                                    <Percent className="w-3 h-3 mr-1" />
+                                    OFF
                                   </Badge>
                                 )}
                               </div>
@@ -571,7 +574,10 @@ const Search = () => {
                               asChild
                               className="bg-orange-600 hover:bg-orange-700"
                             >
-                              <Link to={`/provider/${provider.id}`}>
+                              <Link
+                                to={`/provider/${provider.id}`}
+                                className="hover:text-white"
+                              >
                                 View Details
                               </Link>
                             </Button>

@@ -1297,7 +1297,7 @@ const BecomeProvider = () => {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-sm text-gray-500 mb-1">
+                <div className="text-sm text-gray-500 mb-1 whitespace-nowrap">
                   Step {currentStep + 1} of {steps.length}
                 </div>
                 <div className="text-lg font-semibold text-gray-800">
